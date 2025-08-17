@@ -1,0 +1,279 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Game-like PMS Prototype</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root{--bg:#0f1724;--card:#071029;--accent:#0ea5a4;--text:#e6eef3}
+  body{font-family:Inter,Segoe UI,Arial;background:linear-gradient(180deg,#071029, #0b1b2b);color:var(--text);margin:0;padding:24px}
+  .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  h1{font-size:20px;margin:0}
+  .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .tile{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border:1px solid rgba(255,255,255,0.04);padding:12px;border-radius:10px;cursor:pointer;display:flex;flex-direction:column;align-items:center}
+  .avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#0ea5a4,#3b82f6);display:flex;align-items:center;justify-content:center;font-weight:700;color:#001;box-shadow:0 6px 18px rgba(0,0,0,0.6)}
+  .name{margin-top:8px;font-weight:600}
+  .role{font-size:12px;color:#9fb5c2}
+  .pill{margin-top:8px;background:rgba(0,0,0,0.2);padding:6px 8px;border-radius:999px;font-size:12px}
+  /* modal */
+  .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,6,23,0.6)}
+  .card{background:var(--card);width:760px;max-width:95%;border-radius:12px;padding:18px;box-shadow:0 14px 40px rgba(2,6,23,0.8)}
+  .row{display:flex;gap:12px}
+  .objective{background:#021226;padding:12px;border-radius:8px;margin-bottom:10px}
+  .btn{background:var(--accent);color:#002;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+  .small{font-size:12px;color:#9fb5c2}
+  .nav{display:flex;justify-content:space-between;margin-top:12px}
+  canvas{background:#00121a;border-radius:8px;margin-top:8px}
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>PeopleFirst — Manager Dashboard (Prototype)</h1>
+    <div class="small">Role: Senior Manager (You)</div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <!-- Modal -->
+  <div class="modal" id="modal">
+    <div class="card">
+      <div id="modalContent"></div>
+      <div class="nav">
+        <div><button class="btn" id="backBtn">Back</button></div>
+        <div><button class="btn" id="nextBtn">Next</button></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* Data: 10 employees with roles & objectives */
+const employees = [
+  {id:1,name:"Akhil Juneja",role:"Network Operations Engineer",objectives:[
+    {title:"Reduce MTTR by 20%","weight":30,desc:"P2 incidents"},
+    {title:"Automations implemented","weight":25,desc:"Number of scripts"},
+    {title:"Uptime >=99.8%","weight":25,desc:"Network availability"},
+    {title:"Post-incident docs","weight":20,desc:"Knowledge sharing"}
+  ]},
+  {id:2,name:"Audhip Choudhury",role:"RF Optimization Engineer",objectives:[
+    {title:"Improve throughput (avg +10%)",weight:30},
+    {title:"Drive cell-level optimizations",weight:25},
+    {title:"Reduce drop rate",weight:25},
+    {title:"Knowledge transfer sessions",weight:20}
+  ]},
+  {id:3,name:"Parth",role:"Field Technician",objectives:[
+    {title:"On-site resolution >=85%",weight:30},
+    {title:"Safety & documentation",weight:20},
+    {title:"CSAT >=4.5/5",weight:30},
+    {title:"Reduce repeat visits",weight:20}
+  ]},
+  {id:4,name:"Swapnilm",role:"Backhaul/Satellite Engineer",objectives:[
+    {title:"Backhaul reliability >=99.9%",weight:30},
+    {title:"Latency improvement",weight:25},
+    {title:"Implement redundancy plan",weight:25},
+    {title:"Team training sessions",weight:20}
+  ]},
+  {id:5,name:"Ananya",role:"Product Manager - Digital",objectives:[
+    {title:"MAU growth +15%",weight:30},
+    {title:"Roadmap on-time >=90%",weight:25},
+    {title:"Feature adoption >=target",weight:25},
+    {title:"A/B tests completed",weight:20}
+  ]},
+  {id:6,name:"Apurva",role:"Senior Backend Engineer",objectives:[
+    {title:"System availability 99.95%",weight:30},
+    {title:"Deploy microservices",weight:25},
+    {title:"Latency reduction",weight:25},
+    {title:"Code quality improvements",weight:20}
+  ]},
+  {id:7,name:"Gayatri Devrakonda",role:"Customer Experience Analyst",objectives:[
+    {title:"Improve NPS by 5 pts",weight:30},
+    {title:"Reduce complaints by 15%",weight:25},
+    {title:"Contact resolution %",weight:25},
+    {title:"Insights delivered to product",weight:20}
+  ]},
+  {id:8,name:"Pranali Hole",role:"Sales Account Manager",objectives:[
+    {title:"Net-new revenue target",weight:35},
+    {title:"Retention of top clients",weight:25},
+    {title:"Cross-sell opportunities closed",weight:20},
+    {title:"Sales cycle time reduction",weight:20}
+  ]},
+  {id:9,name:"Sonal",role:"Data Analyst - Network",objectives:[
+    {title:"Actionable models delivered",weight:30},
+    {title:"Reduce anomaly detection time",weight:25},
+    {title:"Dashboards adoption",weight:25},
+    {title:"Training engineers on tools",weight:20}
+  ]},
+  {id:10,name:"Tejasvita",role:"HR Business Partner",objectives:[
+    {title:"Improve time-to-hire",weight:30},
+    {title:"Reduce attrition in BU",weight:25},
+    {title:"L&D uptake",weight:25},
+    {title:"Manager enablement sessions",weight:20}
+  ]}
+];
+
+const grid = document.getElementById('grid');
+const modal = document.getElementById('modal');
+const modalContent = document.getElementById('modalContent');
+const backBtn = document.getElementById('backBtn');
+const nextBtn = document.getElementById('nextBtn');
+
+let currentEmp = null;
+let stepIndex = 0;
+let responses = {}; // store temp ratings
+
+function initGrid(){
+  employees.forEach(emp=>{
+    const t = document.createElement('div'); t.className='tile';
+    t.innerHTML = `<div class="avatar">${emp.name.split(' ').map(s=>s[0]).slice(0,2).join('')}</div>
+      <div class="name">${emp.name}</div>
+      <div class="role">${emp.role}</div>
+      <div class="pill" id="pill-${emp.id}">Not Reviewed</div>`;
+    t.onclick = () => openModal(emp.id);
+    grid.appendChild(t);
+  });
+}
+
+function openModal(empId){
+  currentEmp = employees.find(e=>e.id===empId);
+  stepIndex = 0;
+  responses[currentEmp.id] = {objRatings:[], competencies:[]};
+  modal.style.display='flex';
+  renderStep();
+}
+
+function renderStep(){
+  modalContent.innerHTML='';
+  if(stepIndex < currentEmp.objectives.length){
+    const obj = currentEmp.objectives[stepIndex];
+    const block = document.createElement('div'); block.className='objective';
+    block.innerHTML = `<h3>Objective ${stepIndex+1} of ${currentEmp.objectives.length}</h3>
+      <p class="small">${obj.title} <span style="color:#9fb5c2"> (Weight ${obj.weight}%)</span></p>
+      <p class="small">${obj.desc || ''}</p>
+      <div style="margin-top:10px">
+        <label><input type="radio" name="r" value="0"> Not achieved</label><br>
+        <label><input type="radio" name="r" value="1"> Achieved</label><br>
+        <label><input type="radio" name="r" value="1.25"> Exceeded</label>
+      </div>`;
+    modalContent.appendChild(block);
+    backBtn.style.display = stepIndex===0 ? 'none' : 'inline-block';
+    nextBtn.textContent = 'Next';
+  } else if(stepIndex === currentEmp.objectives.length){
+    // competencies screen
+    const cblock = document.createElement('div'); cblock.className='objective';
+    cblock.innerHTML = `<h3>Competencies</h3>
+      <p class="small">Rate 5 competencies (To be improved / Standard / Outstanding)</p>`;
+    const comps = ['Customer Orientation','Collaboration','Innovation','Execution','Communication'];
+    comps.forEach((c,i)=>{
+      const html = `<div style="margin-top:8px"><strong>${c}</strong><br>
+        <label><input type="radio" name="c${i}" value="0"> To be improved</label>
+        <label style="margin-left:8px"><input type="radio" name="c${i}" value="1"> Standard</label>
+        <label style="margin-left:8px"><input type="radio" name="c${i}" value="2"> Outstanding</label>
+      </div>`;
+      cblock.insertAdjacentHTML('beforeend',html);
+    });
+    modalContent.appendChild(cblock);
+    backBtn.style.display='inline-block';
+    nextBtn.textContent='Calculate';
+  } else {
+    // summary
+    const result = computeScore(currentEmp.id);
+    modalContent.innerHTML = `<h3>${currentEmp.name} — Summary</h3>
+      <p class="small">Role: ${currentEmp.role}</p>
+      <p style="font-size:20px;font-weight:700">${result.finalPercent.toFixed(1)}% — ${result.band}</p>
+      <canvas id="bar" width="700" height="120"></canvas>
+      <p class="small">IDP Suggestions:</p>
+      <ul><li>${result.idp[0]}</li><li>${result.idp[1]}</li></ul>
+      <div style="margin-top:10px"><button class="btn" id="saveBtn">Save Appraisal</button></div>`;
+    document.getElementById('saveBtn').onclick = () => saveAppraisal(currentEmp.id,result);
+    backBtn.style.display='inline-block';
+    nextBtn.style.display='none';
+    // draw chart
+    setTimeout(()=>drawChart(result),80);
+  }
+}
+
+nextBtn.onclick = ()=>{
+  if(stepIndex < currentEmp.objectives.length){
+    // read selected rating
+    const r = document.querySelector('input[name="r"]:checked');
+    if(!r){ alert('Select a rating'); return; }
+    responses[currentEmp.id].objRatings.push(parseFloat(r.value));
+    stepIndex++;
+    renderStep();
+  } else if(stepIndex === currentEmp.objectives.length){
+    // read competencies
+    const comps = ['Customer Orientation','Collaboration','Innovation','Execution','Communication'];
+    let compPoints = [];
+    for(let i=0;i<comps.length;i++){
+      const val = document.querySelector(`input[name="c${i}"]:checked`);
+      if(!val){ alert('Rate all competencies'); return; }
+      compPoints.push(parseInt(val.value));
+    }
+    responses[currentEmp.id].competencies = compPoints;
+    stepIndex++;
+    renderStep();
+  }
+}
+
+backBtn.onclick = ()=>{
+  if(stepIndex>0) {
+    // if going back from competencies to objectives, pop last rating
+    if(stepIndex <= currentEmp.objectives.length){
+      stepIndex--;
+      if(stepIndex < currentEmp.objectives.length) responses[currentEmp.id].objRatings.pop();
+    } else {
+      stepIndex--;
+    }
+    renderStep();
+  } else {
+    modal.style.display='none';
+  }
+}
+
+function computeScore(empId){
+  const emp = employees.find(e=>e.id===empId);
+  const resp = responses[empId];
+  const weights = emp.objectives.map(o=>o.weight);
+  // objectives score
+  let objScore=0; for(let i=0;i<weights.length;i++){ objScore += weights[i] * (resp.objRatings[i] || 0); }
+  // convert to percent since weights are % adding to 100
+  let objectivesPercent = objScore; // in % 
+  // competencies
+  const compSum = resp.competencies.reduce((a,b)=>a+b,0);
+  const maxComp = 2 * resp.competencies.length;
+  const compModifier = 1 + 0.05 * (compSum / maxComp); // up to +5%
+  const finalPercent = objectivesPercent * compModifier;
+  // band
+  let band='Meets expectations'; if(finalPercent>=110) band='Exceptional'; else if(finalPercent>=90) band='Exceeds'; else if(finalPercent<70) band='Needs Improvement';
+  // IDP suggestions (simple)
+  const idp = ['Recommend: 20-hr technical upskill course','Recommend: Mentor pairing for 3 months'];
+  return {objectivesPercent,compSum,finalPercent,band,idp};
+}
+
+function drawChart(result){
+  const c = document.getElementById('bar'); if(!c) return;
+  const ctx = c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height);
+  const labels = ['Objectives','CompetencyAdj','Final']; 
+  const values = [result.objectivesPercent, (result.finalPercent - result.objectivesPercent), result.finalPercent];
+  // simple horizontal bars
+  const baseY=20; for(let i=0;i<3;i++){
+    ctx.fillStyle = i===2 ? '#0ea5a4' : '#1e3a8a';
+    ctx.fillRect(20, baseY + i*30, values[i]*2, 18);
+    ctx.fillStyle='#9fb5c2'; ctx.fillText(labels[i] + ' — ' + values[i].toFixed(1)+'%', 20 + values[i]*2 + 8, baseY + i*30 + 13);
+  }
+}
+
+function saveAppraisal(empId,result){
+  // save to localStorage
+  const key = 'pms_results';
+  const store = JSON.parse(localStorage.getItem(key) || '[]');
+  store.push({empId, result, timestamp:new Date().toISOString()});
+  localStorage.setItem(key, JSON.stringify(store));
+  document.getElementById('pill-'+empId).textContent = result.finalPercent.toFixed(1)+'%';
+  alert('Saved');
+  modal.style.display='none';
+}
+
+initGrid();
+</script>
+</body>
+</html>

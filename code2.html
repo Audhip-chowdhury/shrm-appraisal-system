@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>NovaSpazio — PeopleFirst+ PMS (Demo)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root{
+    --bg:#0a1120;
+    --bg2:#0c1a31;
+    --card:#0f1d32;
+    --ink:#eaf4ff;
+    --muted:#9fb5c2;
+    --accent:#21d1c8;
+    --accent2:#5ba7ff;
+    --accent3:#8a6cff;
+    --line:rgba(255,255,255,0.08);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--ink); font-family:Inter,Segoe UI,Arial;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, #0b2342 0%, transparent 60%),
+      radial-gradient(900px 600px at -20% 20%, #0b1c33 0%, transparent 60%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+    min-height:100vh; padding:24px;
+  }
+  /* Header */
+  .header{display:flex;align-items:center;gap:16px;justify-content:space-between;margin-bottom:18px}
+  .brand{display:flex;align-items:center;gap:14px}
+  .logo-wrap{width:48px;height:48px}
+  h1{font-size:20px;margin:0;letter-spacing:.2px}
+  .tag{font-size:12px;color:var(--muted)}
+  /* Container */
+  .panel{
+    border:1px solid var(--line); border-radius:14px; background:linear-gradient(180deg, rgba(255,255,255,.03), transparent);
+    padding:16px; box-shadow:0 20px 60px rgba(0,0,0,.35);
+  }
+  .subhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .hint{font-size:12px;color:var(--muted)}
+  /* Grid */
+  .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:12px}
+  .tile{
+    position:relative; background:var(--card); border:1px solid var(--line);
+    border-radius:12px; padding:12px; cursor:pointer; transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .tile:hover{transform:translateY(-2px); box-shadow:0 12px 36px rgba(0,0,0,.35)}
+  .avatar{display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+  .name{font-weight:700}
+  .role{font-size:12px;color:var(--muted);line-height:1.3;margin-top:2px}
+  .pill{
+    position:absolute; top:10px; right:10px; font-size:11px;
+    background:linear-gradient(90deg, rgba(33,209,200,.18), rgba(91,167,255,.18));
+    border:1px solid rgba(255,255,255,.08); padding:4px 8px; border-radius:999px; color:#d9f8ff;
+  }
+  /* Buttons */
+  .btn{background:linear-gradient(90deg, var(--accent) , var(--accent2)); color:#001; border:none; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700}
+  .btn.secondary{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn.flat{background:transparent;border:none;color:var(--accent)}
+  /* Modal */
+  .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(1,5,16,.55);backdrop-filter:blur(4px)}
+  .card{background:var(--card); width:840px; max-width:95%; border-radius:14px; padding:18px; border:1px solid var(--line); box-shadow:0 24px 64px rgba(0,0,0,.5)}
+  .row{display:flex;gap:14px;flex-wrap:wrap}
+  .objective{background:#0a1830;border:1px solid var(--line); padding:12px; border-radius:10px;margin-bottom:10px}
+  .objective h3{margin:0 0 6px 0;font-size:16px}
+  .small{font-size:12px;color:var(--muted)}
+  .nav{display:flex;justify-content:space-between;margin-top:12px}
+  canvas{background:#04101c;border-radius:10px;margin-top:8px;border:1px solid var(--line)}
+  .divider{height:1px;background:var(--line);margin:10px 0}
+  /* Avatar SVG seats */
+  .svg-avatar{width:70px;height:70px}
+  .footnote{font-size:11px;color:var(--muted);margin-top:10px}
+  @media (max-width:960px){ .grid{grid-template-columns:repeat(2,1fr)} }
+</style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="brand">
+      <!-- NovaSpazio Logo (SVG) -->
+      <div class="logo-wrap" aria-hidden="true">
+        <svg viewBox="0 0 64 64" class="svg-logo">
+          <defs>
+            <linearGradient id="g" x1="0" x2="1">
+              <stop offset="0" stop-color="#21d1c8"/>
+              <stop offset="1" stop-color="#5ba7ff"/>
+            </linearGradient>
+          </defs>
+          <circle cx="32" cy="32" r="28" fill="url(#g)" opacity=".12"/>
+          <circle cx="32" cy="32" r="20" fill="none" stroke="url(#g)" stroke-width="2" opacity=".9"/>
+          <path d="M10,34 C22,28 42,28 54,34" fill="none" stroke="#8a6cff" stroke-width="2" opacity=".9"/>
+          <circle cx="44" cy="31" r="3" fill="#8a6cff"/>
+          <!-- stylized N -->
+          <path d="M20 44 L20 20 L22 20 L42 44 L42 20 L44 20 L44 44 L42 44 L22 22 L22 44 Z" fill="#dffaff"/>
+        </svg>
+      </div>
+      <div>
+        <h1>NovaSpazio — PeopleFirst+ PMS</h1>
+        <div class="tag">Inspired by Telespazio’s best-practice PMS • Telecom-grade performance & development</div>
+      </div>
+    </div>
+    <button class="btn" id="startBtn">Start Appraisals</button>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="panel">
+    <div class="subhead">
+      <div>
+        <strong>Manager:</strong> Senior Manager (You) • <strong>Cycle:</strong> FY 2023–24
+        <div class="hint">Select an employee to begin appraisal. Each flow takes ~2–4 minutes.</div>
+      </div>
+      <button class="btn secondary" id="resetBtn" title="Clear saved demo results">Reset Results</button>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="footnote">Tip: After you finish a review, the score bubble on the tile updates. Re-open to revisit.</div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Appraisal modal">
+    <div class="card">
+      <div id="modalContent"></div>
+      <div class="nav">
+        <button class="btn secondary" id="backBtn">Back</button>
+        <button class="btn" id="nextBtn">Next</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ---------- Logo click easter egg (no-op for demo) ---------- */
+document.getElementById('startBtn').onclick = () => window.scrollTo({top:document.body.scrollHeight/4, behavior:'smooth'});
+
+/* ---------- Employee & role data ---------- */
+/* 4 male, 6 female */
+const GENDER = {M:'male', F:'female'};
+
+const employees = [
+  {id:1, name:"Akhil Juneja", gender:GENDER.M, role:"Network Operations Engineer", objectives:[
+    {title:"Reduce MTTR by 20%", weight:30, desc:"P2 incidents across assigned clusters"},
+    {title:"Implement 2 automations", weight:25, desc:"Reduce manual ticket ops by 25%"},
+    {title:"Maintain uptime ≥ 99.8%", weight:25, desc:"Core + access nodes"},
+    {title:"5 RCA documents shared", weight:20, desc:"Knowledge base improvements"}
+  ]},
+  {id:2, name:"Audhip Choudhury", gender:GENDER.M, role:"RF Optimization Engineer", objectives:[
+    {title:"Avg throughput +10%", weight:30},
+    {title:"Drop call rate ↓ 15%", weight:25},
+    {title:"Top-10 cells optimized", weight:25},
+    {title:"2 KT sessions per qtr", weight:20}
+  ]},
+  {id:3, name:"Parth", gender:GENDER.M, role:"Field Technician (Site Ops)", objectives:[
+    {title:"On-site resolution ≥ 85%", weight:30},
+    {title:"Safety & SOP compliance", weight:20},
+    {title:"Visit CSAT ≥ 4.5/5", weight:30},
+    {title:"Repeat visits ↓ 15%", weight:20}
+  ]},
+  {id:4, name:"Swapnilm", gender:GENDER.M, role:"Backhaul / Satellite Engineer", objectives:[
+    {title:"Backhaul reliability ≥ 99.9%", weight:30},
+    {title:"Latency improvement (ms)", weight:25},
+    {title:"Redundancy plan deployed", weight:25},
+    {title:"Team training x3", weight:20}
+  ]},
+  {id:5, name:"Ananya", gender:GENDER.F, role:"Product Manager — Digital", objectives:[
+    {title:"MAU growth +15%", weight:30},
+    {title:"Roadmap on-time ≥ 90%", weight:25},
+    {title:"Feature adoption ≥ target", weight:25},
+    {title:"3 A/B tests completed", weight:20}
+  ]},
+  {id:6, name:"Apurva", gender:GENDER.F, role:"Senior Backend Engineer", objectives:[
+    {title:"System availability 99.95%", weight:30},
+    {title:"Microservices deployed", weight:25},
+    {title:"Latency ↓ 20%", weight:25},
+    {title:"Code quality ↑ (Sonar)", weight:20}
+  ]},
+  {id:7, name:"Gayatri Devrakonda", gender:GENDER.F, role:"Customer Experience Analyst", objectives:[
+    {title:"NPS +5 points", weight:30},
+    {title:"Complaints ↓ 15%", weight:25},
+    {title:"FCR (first contact resolution)", weight:25},
+    {title:"Insights → 3 product changes", weight:20}
+  ]},
+  {id:8, name:"Pranali Hole", gender:GENDER.F, role:"Sales Account Manager (Enterprise)", objectives:[
+    {title:"Net-new revenue target", weight:35},
+    {title:"Top-client retention", weight:25},
+    {title:"Cross-sell wins", weight:20},
+    {title:"Sales cycle ↓ 10%", weight:20}
+  ]},
+  {id:9, name:"Sonal", gender:GENDER.F, role:"Data Analyst — Network Insights", objectives:[
+    {title:"Models → actionable alerts", weight:30},
+    {title:"Anomaly detection time ↓", weight:25},
+    {title:"Dashboard adoption", weight:25},
+    {title:"Train engineers on tools", weight:20}
+  ]},
+  {id:10, name:"Tejasvita", gender:GENDER.F, role:"HR Business Partner (BU)", objectives:[
+    {title:"Time-to-hire ↓ 20%", weight:30},
+    {title:"Attrition in BU ↓ 3pp", weight:25},
+    {title:"L&D uptake ≥ 80%", weight:25},
+    {title:"Manager enablement x4", weight:20}
+  ]},
+];
+
+/* ---------- UI: build grid with SVG avatars ---------- */
+const grid = document.getElementById('grid');
+function avatarSVG(name, gender){
+  const initials = name.split(' ').map(s=>s[0]).slice(0,2).join('');
+  // color theme by gender
+  const ring = gender===GENDER.M ? '#5ba7ff' : '#21d1c8';
+  const fill = gender===GENDER.M ? 'rgba(91,167,255,.15)' : 'rgba(33,209,200,.15)';
+  const icon = gender===GENDER.M ? 'M34 26 a6 6 0 1 1 -12 0 a6 6 0 1 1 12 0 M22 44 q8 -8 16 0 v4 h-16 z'
+                                 : 'M32 24 a6 6 0 1 1 0 12 a6 6 0 1 1 0 -12 M22 44 q10 -10 20 0 v4 h-20 z';
+  return `
+  <svg viewBox="0 0 64 64" class="svg-avatar" aria-hidden="true">
+    <defs><linearGradient id="gA" x1="0" x2="1"><stop offset="0" stop-color="#21d1c8"/><stop offset="1" stop-color="#5ba7ff"/></linearGradient></defs>
+    <circle cx="32" cy="32" r="30" fill="${fill}" stroke="url(#gA)" stroke-width="1.5"/>
+    <path d="${icon}" fill="${ring}" opacity=".9"/>
+    <circle cx="48" cy="14" r="5" fill="#8a6cff" opacity=".9"/>
+    <text x="32" y="58" text-anchor="middle" font-size="12" fill="#eaf4ff" font-weight="700">${initials}</text>
+  </svg>`;
+}
+
+function makeTile(emp){
+  const tile = document.createElement('div'); tile.className='tile'; tile.id = `tile-${emp.id}`;
+  tile.innerHTML = `
+    <div class="pill" id="pill-${emp.id}">Not Reviewed</div>
+    <div class="avatar">${avatarSVG(emp.name, emp.gender)}</div>
+    <div class="name">${emp.name}</div>
+    <div class="role">${emp.role}</div>
+  `;
+  tile.onclick = () => openModal(emp.id);
+  return tile;
+}
+
+function initGrid(){
+  employees.forEach(emp => grid.appendChild(makeTile(emp)));
+}
+initGrid();
+
+/* ---------- Modal flow ---------- */
+const modal = document.getElementById('modal');
+const modalContent = document.getElementById('modalContent');
+const backBtn = document.getElementById('backBtn');
+const nextBtn = document.getElementById('nextBtn');
+
+let currentEmp = null;
+let stepIndex = 0;
+let responses = {}; // { empId: { objRatings:[], competencies:[] } }
+
+function openModal(empId){
+  currentEmp = employees.find(e=>e.id===empId);
+  stepIndex = 0;
+  responses[currentEmp.id] = {objRatings:[], competencies:[]};
+  modal.style.display='flex';
+  renderStep();
+}
+
+function closeModal(){
+  modal.style.display='none';
+}
+
+backBtn.onclick = ()=>{
+  if(stepIndex===0){ closeModal(); return; }
+  if(stepIndex <= currentEmp.objectives.length){
+    stepIndex--;
+    if(stepIndex < currentEmp.objectives.length) responses[currentEmp.id].objRatings.pop();
+  }else{
+    stepIndex--;
+  }
+  renderStep();
+};
+
+nextBtn.onclick = ()=>{
+  if(stepIndex < currentEmp.objectives.length){
+    const r = document.querySelector('input[name="r"]:checked');
+    if(!r){ alert('Select a rating'); return; }
+    responses[currentEmp.id].objRatings.push(parseFloat(r.value));
+    stepIndex++;
+    renderStep();
+  } else if(stepIndex === currentEmp.objectives.length){
+    const comps = ['Customer Orientation','Collaboration','Innovation','Execution','Communication'];
+    const pts=[];
+    for(let i=0;i<comps.length;i++){
+      const v = document.querySelector(`input[name="c${i}"]:checked`);
+      if(!v){ alert('Rate all competencies'); return; }
+      pts.push(parseInt(v.value));
+    }
+    responses[currentEmp.id].competencies = pts;
+    stepIndex++;
+    renderStep();
+  }
+};
+
+/* ---------- Steps renderer ---------- */
+function renderStep(){
+  const emp = currentEmp;
+  modalContent.innerHTML = '';
+  // Intro card
+  if(stepIndex===0){
+    modalContent.innerHTML = `
+      <div class="row" style="align-items:center;gap:16px">
+        <div>${avatarSVG(emp.name, emp.gender)}</div>
+        <div>
+          <h2 style="margin:0">${emp.name}</h2>
+          <div class="small">${emp.role}</div>
+          <div class="divider"></div>
+          <div class="small">You’ll review ${emp.objectives.length} objectives and 5 competencies.<br/>Scoring: Not (0) • Achieved (100%) • Exceeded (125%). Competencies can add up to +5%.</div>
+        </div>
+      </div>
+      <div class="objective">
+        <h3>Objective 1 of ${emp.objectives.length}</h3>
+        <p class="small"><strong>${emp.objectives[0].title}</strong> <span style="color:var(--muted)"> (Weight ${emp.objectives[0].weight}%)</span><br>${emp.objectives[0].desc || ''}</p>
+        <label><input type="radio" name="r" value="0"> Not achieved</label><br>
+        <label><input type="radio" name="r" value="1"> Achieved</label><br>
+        <label><input type="radio" name="r" value="1.25"> Exceeded</label>
+      </div>
+    `;
+    nextBtn.textContent = 'Next';
+    return;
+  }
+
+  // Objectives pages
+  if(stepIndex>0 && stepIndex<emp.objectives.length){
+    const i = stepIndex;
+    const obj = emp.objectives[i];
+    modalContent.innerHTML = `
+      <div class="objective">
+        <h3>Objective ${i+1} of ${emp.objectives.length}</h3>
+        <p class="small"><strong>${obj.title}</strong> <span style="color:var(--muted)"> (Weight ${obj.weight}%)</span><br>${obj.desc || ''}</p>
+        <label><input type="radio" name="r" value="0"> Not achieved</label><br>
+        <label><input type="radio" name="r" value="1"> Achieved</label><br>
+        <label><input type="radio" name="r" value="1.25"> Exceeded</label>
+      </div>
+    `;
+    nextBtn.textContent = (i===emp.objectives.length-1) ? 'Go to Competencies' : 'Next';
+    return;
+  }
+
+  // Competencies page
+  if(stepIndex===emp.objectives.length){
+    const comps = ['Customer Orientation','Collaboration','Innovation','Execution','Communication'];
+    const cblock = document.createElement('div'); cblock.className='objective';
+    cblock.innerHTML = `<h3>Competencies</h3><p class="small">Rate the following (0 = To be improved, 1 = Standard, 2 = Outstanding)</p>`;
+    comps.forEach((c,i)=>{
+      cblock.insertAdjacentHTML('beforeend', `
+        <div style="margin:8px 0"><strong>${c}</strong><br/>
+          <label><input type="radio" name="c${i}" value="0"> To be improved</label>
+          <label style="margin-left:8px"><input type="radio" name="c${i}" value="1"> Standard</label>
+          <label style="margin-left:8px"><input type="radio" name="c${i}" value="2"> Outstanding</label>
+        </div>
+      `);
+    });
+    modalContent.appendChild(cblock);
+    nextBtn.textContent='Calculate';
+    return;
+  }
+
+  // Summary
+  const result = computeScore(emp.id);
+  modalContent.innerHTML = `
+    <div class="row" style="align-items:center;gap:16px">
+      <div>${avatarSVG(emp.name, emp.gender)}</div>
+      <div>
+        <h2 style="margin:0">${emp.name}</h2>
+        <div class="small">${emp.role}</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <p style="font-size:20px;font-weight:800;margin:6px 0">${result.finalPercent.toFixed(1)}% — ${result.band}</p>
+    <div class="small">Objectives: ${result.objectivesPercent.toFixed(1)}% • Competency boost: ${(result.finalPercent - result.objectivesPercent).toFixed(1)}%</div>
+    <canvas id="bar" width="780" height="130" aria-label="Score chart"></canvas>
+    <div class="objective">
+      <h3>Suggested IDP</h3>
+      <ul style="margin:6px 0 0 18px">
+        <li>${result.idp[0]}</li>
+        <li>${result.idp[1]}</li>
+      </ul>
+    </div>
+    <div class="row">
+      <button class="btn" id="saveBtn">Save Appraisal</button>
+      <button class="btn secondary" id="closeBtn">Close</button>
+    </div>
+  `;
+  document.getElementById('saveBtn').onclick = () => saveAppraisal(emp.id, result);
+  document.getElementById('closeBtn').onclick = closeModal;
+  nextBtn.textContent='Next';
+  nextBtn.style.display='none'; // summary is final
+  drawChart(result);
+}
+
+/* ---------- Scoring ---------- */
+function computeScore(empId){
+  const emp = employees.find(e=>e.id===empId);
+  const resp = responses[empId];
+  const weights = emp.objectives.map(o=>o.weight);
+  // Objectives score in percent (weights sum to 100)
+  let objScore=0;
+  for(let i=0;i<weights.length;i++){ objScore += weights[i] * (resp.objRatings[i] || 0); }
+  let objectivesPercent = objScore;
+
+  // Competency modifier (up to +5%)
+  const compSum = resp.competencies.reduce((a,b)=>a+b,0);
+  const maxComp = 2 * resp.competencies.length;
+  const compModifier = 1 + 0.05 * (compSum / maxComp);
+  const finalPercent = objectivesPercent * compModifier;
+
+  // Banding
+  let band='Meets expectations';
+  if(finalPercent>=110) band='Exceptional';
+  else if(finalPercent>=90) band='Exceeds';
+  else if(finalPercent<70) band='Needs Improvement';
+
+  // Simple IDP logic
+  const idpGood = ['Advanced role certification (16–20 hrs)', 'Mentor pairing (12 weeks)'];
+  const idpImprove = ['Targeted skills booster (20–25 hrs)', 'Monthly check-ins with skill practice'];
+  const idp = finalPercent<90 ? idpImprove : idpGood;
+
+  return {objectivesPercent, finalPercent, band, idp, compSum};
+}
+
+/* ---------- Chart ---------- */
+function drawChart(result){
+  const c = document.getElementById('bar'); if(!c) return;
+  const ctx = c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height);
+  const labels = ['Objectives','Competency Boost','Final'];
+  const values = [result.objectivesPercent, Math.max(result.finalPercent - result.objectivesPercent,0), result.finalPercent];
+
+  const x = 24, y0 = 22, h = 22, gap = 28, scale = 2.6;
+  for(let i=0;i<3;i++){
+    ctx.fillStyle = i===2 ? '#21d1c8' : (i===0 ? '#5ba7ff' : '#8a6cff');
+    ctx.fillRect(x, y0 + i*(h+gap), values[i]*scale, h);
+    ctx.fillStyle = '#cfe9ff';
+    ctx.font = '12px system-ui';
+    ctx.fillText(`${labels[i]} — ${values[i].toFixed(1)}%`, x + values[i]*scale + 8, y0 + i*(h+gap) + h - 6);
+  }
+  // baseline
+  ctx.strokeStyle = 'rgba(255,255,255,.12)';
+  ctx.beginPath(); ctx.moveTo(x, 8); ctx.lineTo(x, 128); ctx.stroke();
+}
+
+/* ---------- Persistence ---------- */
+function saveAppraisal(empId, result){
+  const key = 'novaspazio_pms_results';
+  const store = JSON.parse(localStorage.getItem(key) || '[]');
+  // replace existing entry for empId
+  const i = store.findIndex(r=>r.empId===empId);
+  const item = {empId, result, timestamp:new Date().toISOString()};
+  if(i>=0) store[i] = item; else store.push(item);
+  localStorage.setItem(key, JSON.stringify(store));
+  document.getElementById('pill-'+empId).textContent = result.finalPercent.toFixed(1)+'%';
+  alert('Saved');
+  closeModal();
+}
+
+document.getElementById('resetBtn').onclick = ()=>{
+  localStorage.removeItem('novaspazio_pms_results');
+  employees.forEach(e=>{ const pill = document.getElementById('pill-'+e.id); if(pill) pill.textContent='Not Reviewed'; });
+  alert('All saved demo results cleared.');
+};
+</script>
+</body>
+</html>
