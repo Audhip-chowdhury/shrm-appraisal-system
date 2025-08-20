@@ -238,17 +238,23 @@
 
 
   <!-- Dashboard -->
-  <div class="panel" id="dashboard">
+   
+  <div class="panel" id="dashboard" >
     <div class="subhead">
       <div>
+        <div id="empInfo">
+       
+      </div>
         <strong>Manager:</strong> Senior Manager (You) • <strong>Cycle:</strong> FY 2023–24
         <div class="hint">Select an employee to begin appraisal. Each flow takes ~2–4 minutes.</div>
       </div>
+      
       <button class="btn secondary" id="resetBtn" title="Clear saved demo results">Reset Results</button>
     </div>
     <div class="grid" id="grid"></div>
     <div class="footnote">Tip: After you finish a review, the score bubble on the tile updates. Re-open to revisit.</div>
   </div>
+  
 
   <!-- Modal -->
   <div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Appraisal modal">
@@ -270,6 +276,46 @@ document.getElementById('startBtn').onclick = () => {
 
 /* ---------- Rest of your JS from original code ---------- */
 const GENDER = {M:'male', F:'female'};
+
+const snremp=
+  {id:1, name:"Indrani Ghosh", gender:GENDER.M, role:"Network Operations Engineer" , img : "pic/indrani_ghosh.jpeg"}
+
+   document.getElementById("empInfo").innerHTML =
+    `
+    <div class="avatar" style="position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+
+      <!-- Outer gradient border -->
+      <div style="
+        position: relative;
+        width: 76px;
+        height: 76px;
+        border-radius: 50%;
+        padding: 3px;
+        background: linear-gradient(135deg, #21d1c8, #5ba7ff);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        <!-- Image circle -->
+        <div style="
+          width: 70px;
+          height: 70px;
+          border-radius: 50%;
+          overflow: hidden;
+        ">
+          <img src="${snremp.img}" alt="${snremp.name}"
+               style="width: 100%; height: 100%; object-fit: cover; display: block; object-position: center;" />
+        </div>
+
+        <!-- Status dot -->
+        
+      </div>
+
+      
+
+    <div class="name" style="text-align: center;">${snremp.name}</div>
+   
+  `;
 
 const employees = [
   {id:1, name:"Akhil Juneja", gender:GENDER.M, role:"Network Operations Engineer" , img : "pic/akhil.jpg", objectives:[
